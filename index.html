@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,14 +10,14 @@
   <meta property="og:type" content="website" />
   <meta property="og:title" content="EaglercraftX 1.8" />
   <meta property="og:description" content="test directory HTML page" />
-  <link rel="shortcut icon" href="favicon.png" type="image/png" />
+  <link type="image/png" rel="shortcut icon" href="favicon.png" />
 
-  <!-- Core Scripts -->
+  <!-- Scripts -->
   <script src="ModAPI.js"></script>
   <script src="ModLoader.js"></script>
   <script src="ModGUI.js"></script>
 
-  <!-- Split classes files hosted on GitHub Pages -->
+  <!-- ✅ Load split classes files from GitHub -->
   <script src="https://skulldagrait.github.io/eaglerforge/classes1.js"></script>
   <script src="https://skulldagrait.github.io/eaglerforge/classes2.js"></script>
   <script src="https://skulldagrait.github.io/eaglerforge/classes3.js"></script>
@@ -25,42 +25,54 @@
   <script src="https://skulldagrait.github.io/eaglerforge/classes5.js"></script>
   <script src="https://skulldagrait.github.io/eaglerforge/classes6.js"></script>
 
-  <!-- JSConsole Remote Debug (Optional) -->
-  <script src="https://jsconsole.com/remote.js?ee45e9"></script>
-
+  <!-- ✅ Wait for main() to be defined before calling it -->
   <script>
     "use strict";
+
+    function initEaglercraft() {
+      if (typeof main !== "function") {
+        // Retry until main() is available from the split class files
+        setTimeout(initEaglercraft, 100);
+        return;
+      }
+
+      const relayId = Math.floor(Math.random() * 3);
+      window.eaglercraftXOpts = {
+        demoMode: false,
+        container: "game_frame",
+        assetsURI: "assets.epk",
+        localesURI: "lang/",
+        worldsDB: "worlds",
+        logInvalidCerts: true,
+        servers: [
+          { addr: "ws://localhost:8081/", name: "Local test server" }
+        ],
+        relays: [
+          { addr: "wss://relay.deev.is/", comment: "lax1dude relay #1", primary: relayId == 0 },
+          { addr: "wss://relay.lax1dude.net/", comment: "lax1dude relay #2", primary: relayId == 1 },
+          { addr: "wss://relay.shhnowisnottheti.me/", comment: "ayunami relay #1", primary: relayId == 2 }
+        ]
+      };
+
+      // Allow joining servers directly via ?server= param
+      const q = new URLSearchParams(window.location.search);
+      const s = q.get("server");
+      if (s) window.eaglercraftXOpts.joinServer = s;
+
+      // ✅ Start the game
+      main();
+    }
+
     window.addEventListener("load", () => {
       if (document.location.href.startsWith("file:")) {
-        alert("HTTP please — do not open this file locally. Use a local or remote HTTP server.");
+        alert("HTTP please, do not open this file locally, run a local HTTP server and load it via HTTP");
       } else {
-        const relayId = Math.floor(Math.random() * 3);
-        window.eaglercraftXOpts = {
-          demoMode: false,
-          container: "game_frame",
-          assetsURI: "assets.epk",
-          localesURI: "lang/",
-          worldsDB: "worlds",
-          logInvalidCerts: true,
-          servers: [
-            { addr: "ws://localhost:8081/", name: "Local test server" }
-          ],
-          relays: [
-            { addr: "wss://relay.deev.is/", comment: "lax1dude relay #1", primary: relayId === 0 },
-            { addr: "wss://relay.lax1dude.net/", comment: "lax1dude relay #2", primary: relayId === 1 },
-            { addr: "wss://relay.shhnowisnottheti.me/", comment: "ayunami relay #1", primary: relayId === 2 }
-          ]
-        };
-
-        const q = new URLSearchParams(window.location.search);
-        const s = q.get("server");
-        if (s) window.eaglercraftXOpts.joinServer = s;
-
-        main(); // Start the game
+        initEaglercraft();
       }
     });
   </script>
 </head>
-<body style="margin:0;width:100vw;height:100vh;overflow:hidden;" id="game_frame">
+
+<body style="margin:0px;width:100vw;height:100vh;overflow:hidden;" id="game_frame">
 </body>
 </html>
